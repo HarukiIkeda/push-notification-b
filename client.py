@@ -14,7 +14,7 @@ PROXY_NAME = "/proxy/notify"
 
 @app.route(MY_PREFIX)
 def on_notification(name, param, app_param): #app_paramはapplication parameters
-    print(f"\n[Client] ★ PUSH通知を受信！ Name: {Name.to_str(name)}", flush=True)
+    print(f"\n[Client] PUSH通知を受信！ Name: {Name.to_str(name)}", flush=True)
     if app_param:
         msg = bytes(app_param).decode('utf-8')
         print(f"[Client] エラー内容: {msg}", flush=True)
