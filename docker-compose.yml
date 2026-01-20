@@ -1,0 +1,52 @@
+version: '3'
+
+services:
+  # --- プロキシ ---
+  proxy:
+    build: .
+    container_name: ndn-bpush-proxy
+    privileged: true
+    volumes:
+      - .:/app
+    # Proxyは Clientコンテナへ投げる必要がある
+    command: >
+      bash -c "nfd-start && 
+               sleep 2 && 
+               nfdc face create remote udp://ndn-bpush-client && 
+               nfdc route add /client udp://ndn-bpush-client && 
+               python3 proxy.py"
+
+  # --- サーバー ---
+  server:
+    build: .
+    container_name: ndn-bpush-server
+    privileged: true
+    volumes:
+      - .:/app
+    depends_on:
+      - proxy
+    # Serverは Proxyコンテナへ投げる必要がある
+    command: >
+      bash -c "nfd-start && 
+               sleep 2 && 
+               nfdc face create remote udp://ndn-bpush-proxy && 
+               nfdc route add /proxy udp://ndn-bpush-proxy && 
+               python3 server.py"
+
+  # --- クライアント ---
+  client:
+    build: .
+    container_name: ndn-bpush-client
+    privileged: true
+    volumes:
+      - .:/app
+    depends_on:
+      - server
+    # Clientは ServerとProxyへ投げる必要がある
+    command: >
+      bash -c "nfd-start && 
+               sleep 2 && 
+               nfdc face create remote udp://ndn-bpush-server && 
+               nfdc route add /server udp://ndn-bpush-server && 
+               nfdc route add /proxy udp://ndn-bpush-proxy && 
+               python3 client.py"
