@@ -28,7 +28,7 @@ async def main():
 
     print(f"[Client] 計算要求を送信します: {SERVER_TARGET}", flush=True)
 
-    token = base64.urlsafe_b64encode(b"client/A").decode().rstrip('=') #client/Aを隠蔽
+    token = base64.urlsafe_b64encode(b"client/A").decode().rstrip('=') #client/Aを隠蔽。base64はバイト列返すのでdecodeで文字列に変換し、末尾の=を削る
     
     params = {
         "proxy": PROXY_NAME, #エラー時に送るプロキシ

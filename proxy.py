@@ -14,7 +14,7 @@ def on_notification(name, param, app_param): #nameはinterestの名前だが、N
     asyncio.create_task(forward_to_client(name, app_param)) #非同期にクライアントへ転送
 
 async def forward_to_client(incoming_name, payload):
-    prefix_len = len(Name.from_str(LISTEN_PREFIX)) #自分のプレフィックス(/proxy/notify)が何個の性分化数える
+    prefix_len = len(Name.from_str(LISTEN_PREFIX)) #自分のプレフィックス(/proxy/notify)が何個の成分か数える
     
     end_index = len(incoming_name) #interestの名前の長さを取得
     # 末尾にParametersSha256がある場合は無視する

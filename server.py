@@ -24,7 +24,7 @@ def on_interest(name, param, app_param): #nameはinterestの名前
         token = params.get("token")
         
         print(f"[Server] 指示解読: Proxy='{target_proxy}', Token='{token}'", flush=True)
-        print("[Server] 計算エラー発生！ 指示通りに通知します", flush=True)
+        print("[Server] 計算エラー発生！ 通知します", flush=True)
 
         asyncio.create_task(send_notification(target_proxy, token)) #asyncioで非同期に通知を送る
 
@@ -38,7 +38,7 @@ async def send_notification(proxy_name, token):
     print(f"[Server] プロキシへ通知送信: {target}", flush=True)
     
     try:
-        # 戻り値を受け取る (data_name, meta_info, content)
+        # プロキシにinterest飛ばして、戻り値(Ack)も受け取る (data_name, meta_info, content)
         _, _, content = await app.express_interest(
             target,
             app_param=b'Error: Zero Division Detected',
