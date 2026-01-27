@@ -1,6 +1,6 @@
 # proxy.py
 from ndn.app import NDNApp
-from ndn.encoding import Name, Component #ComponentはParametersSha256を判定するときに使う
+from ndn.encoding import Name, Component
 import asyncio
 import base64
 
@@ -8,7 +8,7 @@ app = NDNApp()
 
 LISTEN_PREFIX = "/proxy/notify"
 
-@app.route(LISTEN_PREFIX)
+@app.route(LISTEN_PREFIX) 
 def on_notification(name, param, app_param): #nameはinterestの名前だが、NDNの仕様で末尾にparams-sha...が付く
     print(f"[Proxy] 通知受信: {Name.to_str(name)}", flush=True)
     asyncio.create_task(forward_to_client(name, app_param)) #非同期にクライアントへ転送
@@ -16,8 +16,7 @@ def on_notification(name, param, app_param): #nameはinterestの名前だが、N
 async def forward_to_client(incoming_name, payload):
     prefix_len = len(Name.from_str(LISTEN_PREFIX)) #自分のプレフィックス(/proxy/notify)が何個の成分か数える
     
-    end_index = len(incoming_name) #interestの名前の長さを取得
-    # 末尾にParametersSha256がある場合は無視する
+    end_index = len(incoming_name)
     if end_index > 0 and Component.get_type(incoming_name[-1]) == Component.TYPE_PARAMETERS_SHA256:
         end_index -= 1
     
@@ -25,7 +24,7 @@ async def forward_to_client(incoming_name, payload):
         print("[Proxy] エラー: トークンが見つかりません", flush=True)
         return
 
-    token_component = incoming_name[prefix_len] #incoming_nameは[proxy, notify, <token>, ...]の形なので、prefix_len番目がtoken
+    token_component = incoming_name[prefix_len] #prefix_len番目がtoken
     token_str = bytes(token_component).decode('utf-8') #バイナリを文字列に変換
 
     try:
@@ -39,20 +38,21 @@ async def forward_to_client(incoming_name, payload):
         print(f"[Proxy] 転送先: {target}", flush=True)
 
         # Interestの結果(Data)を受け取る変数を用意
-        data_name, meta_info, content = await app.express_interest( #awaitでDataパケット車でここで停止。contentはクライアントからのACK from Clientという返信メッセージ。data_nameはInterestの名前、meta_infoはメタ情報
+        data_name, meta_info, content = await app.express_interest(
             target,
             app_param=payload,
             must_be_fresh=True,
             can_be_prefix=False,
             lifetime=1000
         )
-        # ここに来る＝Ackが返ってきたということ
+        
         ack_msg = bytes(content).decode('utf-8')
         print(f"[Proxy] クライアントからAck受信: {ack_msg}", flush=True)
 
-        # incoming_name (Serverが送ってきたInterest名) に対してDataを作る
-        app.put_data(incoming_name, content=b'ACK from Proxy', freshness_period=1000)
-        print("[Proxy] サーバーへAck(Data)を返信しました", flush=True)
+        #クライアントからのAck内容をそのままサーバーへ転送
+        # "ACK from Client (ID: ...)" という内容がそのままサーバーに届く
+        app.put_data(incoming_name, content=content, freshness_period=1000)
+        print("[Proxy] サーバーへAck(Data)を転送しました", flush=True)
 
     except Exception as e:
         print(f"[Proxy] 転送失敗(解読不可): {e}", flush=True)
