@@ -33,9 +33,10 @@ async def forward_to_client(incoming_name, payload):
             token_str += '=' * (4 - padding)
             
         decoded_name = base64.urlsafe_b64decode(token_str).decode('utf-8') #デコードして元のクライアント名を取得
+        print(f"[Proxy] 暗号化されたクライアント名を解読しました クライアント名: {decoded_name}", flush=True)
         
         target = f"/{decoded_name}/notify"
-        print(f"[Proxy] 転送先: {target}", flush=True)
+        print(f"[Proxy] 完了通知を転送します 転送先: {target}", flush=True)
 
         # Interestの結果(Data)を受け取る変数を用意
         data_name, meta_info, content = await app.express_interest(
@@ -52,7 +53,7 @@ async def forward_to_client(incoming_name, payload):
         #クライアントからのAck内容をそのままサーバーへ転送
         # "ACK from Client (ID: ...)" という内容がそのままサーバーに届く
         app.put_data(incoming_name, content=content, freshness_period=1000)
-        print("[Proxy] サーバーへAck(Data)を転送しました", flush=True)
+        print("[Proxy] サーバへAckを転送しました", flush=True)
 
     except Exception as e:
         print(f"[Proxy] 転送失敗(解読不可): {e}", flush=True)

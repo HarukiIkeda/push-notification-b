@@ -32,7 +32,7 @@ async def process_compute(name, app_param):
         
         print(f"[Server] 受付: ID='{tx_id}', Proxy='{target_proxy}'", flush=True)
 
-        print(f"[Server] 重い計算を開始します (4秒かかります)...", flush=True)
+        print(f"[Server] 計算処理を開始", flush=True)
         await asyncio.sleep(4)
 
         # 計算完了をシミュレートして保存
